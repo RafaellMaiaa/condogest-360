@@ -10,8 +10,13 @@ const TicketSchema = new mongoose.Schema({
   prioridade: { type: String, enum: ['Baixa', 'Média', 'Alta', 'Urgente'], default: 'Média' },
   
   // ESTADO DA AVARIA
-  estado: { type: String, enum: ['Aberto', 'Em Resolução', 'Concluído'], default: 'Aberto' },
-
+ estado: { 
+        type: String, 
+        enum: ['Pendente', 'Em Resolução', 'Concluído', 'Arquivado'], 
+        default: 'Pendente' 
+    },
+    fotos: [{ type: String }], // Novo: Array com os caminhos das imagens
+    deletedAt: { type: Date, default: null }, // Novo: Data de eliminação (Soft Delete)
   zona: { type: String, default: 'Geral' },
   componente: { type: String, default: 'Outro' },
 
@@ -23,7 +28,9 @@ const TicketSchema = new mongoose.Schema({
   }],
   // -----------------------------------
 
-  dataCriacao: { type: Date, default: Date.now }
+  dataCriacao: { type: Date, default: Date.now },
+    inquilino: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    condominio: { type: mongoose.Schema.Types.ObjectId, ref: 'Condominio', required: true }
 });
 
 module.exports = mongoose.model('Ticket', TicketSchema);

@@ -3,6 +3,7 @@ import axios from 'axios'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { jsPDF } from "jspdf"
 
+
 const COLORS = ['#27ae60', '#ecf0f1'];
 
 function App() {
@@ -88,7 +89,7 @@ function App() {
 
       // 4. Rodapé
       doc.setFontSize(9); doc.setTextColor(150);
-      doc.text("Processado por computador - CondoGest 360", 105, 270, { align: "center" })
+      doc.text("Criado Por Rafael Maia - CondoGest 360", 105, 270, { align: "center" })
 
       doc.save(`Recibo_${dadosPagamento.numeroRecibo}.pdf`)
     } catch(e) { console.error(e); alert("Erro ao gerar PDF") }
@@ -254,7 +255,7 @@ function App() {
                 {dadosInquilino.pagamentos.map(p => (
                     <li key={p._id} style={{padding:'15px',background:'white',border:'1px solid #eee',marginBottom:'10px',borderRadius:'8px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                         <div><div style={{fontWeight:'bold'}}>Recibo #{p.numeroRecibo}</div><div style={{fontSize:'0.85em',color:'#999'}}>{new Date(p.data).toLocaleDateString()}</div></div>
-                        <div style={{textAlign:'right'}}><div style={{color:'#27ae60',fontWeight:'bold',marginBottom:'5px'}}>{p.valor} €</div><button onClick={()=>gerarReciboPDF(p)} style={{cursor:'pointer',fontSize:'0.8em',padding:'5px 10px',background:'#f8f9fa',border:'1px solid #ddd',borderRadius:'4px'}}>📥 Baixar</button></div>
+                        <div style={{textAlign:'right'}}><div style={{color:'#27ae60',fontWeight:'bold',marginBottom:'5px'}}>{p.valor} €</div><button onClick={()=>gerarReciboPDF(p)} style={{cursor:'pointer',fontSize:'0.8em',padding:'5px 10px',background:'#f8f9fa',border:'1px solid #ddd',borderRadius:'4px'}}>📥 Descarregar Documento</button></div>
                     </li>
                 ))}
             </ul>
