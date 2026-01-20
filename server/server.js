@@ -1,29 +1,31 @@
-// server/server.js
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const path = require('path'); // <--- IMPORTANTE
-require('dotenv').config();
-const connectDB = require('./config/db'); // (Assumindo que tens isto)
+const path = require('path');
+const connectDB = require('./config/db');
 
 const app = express();
 
-// Conectar à base de dados
+// 1. Conectar BD
 connectDB();
 
-// Middlewares
-app.use(cors());
-app.use(express.json());
+// 2. Middlewares
+app.use(cors()); // Permite que o frontend fale com o backend
+app.use(express.json()); // Permite ler JSON no body
 
-// --- LINHA CRÍTICA PARA AS FOTOS FUNCIONAREM ---
-// Isto torna a pasta 'uploads' pública na internet
+// 3. Servir Imagens Estáticas (Crucial para as fotos aparecerem!)
+// Quando o frontend pede http://localhost:5001/uploads/foto.jpg, este comando entrega o ficheiro.
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Rotas
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api', require('./routes/dashboard'));
-app.use('/api', require('./routes/admin'));
+// 4. Rotas
 app.use('/api/tickets', require('./routes/tickets'));
-app.use('/api/comunicados', require('./routes/comunicados')); // Vamos criar este
+app.use('/api/comunicados', require('./routes/avisos'));
 
+// 5. Rota de Teste
+app.get('/', (req, res) => {
+    res.send('API CondoGest 360 a funcionar! 🚀');
+});
+
+// 6. Arrancar Servidor
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Servidor a correr na porta ${PORT}`));
