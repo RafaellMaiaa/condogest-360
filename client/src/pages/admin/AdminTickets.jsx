@@ -1,53 +1,99 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Archive, RotateCcw } from 'lucide-react';
+import { useParams } from 'react-router-dom'; // Para ler o ID do URL
+import { Archive, Save } from 'lucide-react';
 
 const API_URL = "http://localhost:5001";
-const CONDOMINIO_ID = "65f2d6e4a2b1c3d4e5f67899"; // O mesmo ID de teste
 
 export default function AdminTickets() {
-  const [tab, setTab] = useState('ativos'); // ativos | arquivados
+  const { condominioId } = useParams(); // Pega o ID que vem do Dashboard
+  const [activeTab, setActiveTab] = useState('ativos');
   const [tickets, setTickets] = useState([]);
 
   useEffect(() => {
-    const route = tab === 'ativos' ? `/api/tickets/condominio/${CONDOMINIO_ID}` : `/api/tickets/arquivados/${CONDOMINIO_ID}`;
-    axios.get(API_URL + route).then(res => setTickets(res.data));
-  }, [tab]);
+    carregarTickets();
+  }, [activeTab, condominioId]);
 
-  const arquivar = async (id) => {
-    if(!window.confirm("Tem a certeza?")) return;
+  const carregarTickets = () => {
+    if(!condominioId) return;
+    const endpoint = activeTab === 'ativos' 
+      ? `/api/tickets/condominio/${condominioId}`
+      : `/api/tickets/arquivados/${condominioId}`;
+
+    axios.get(API_URL + endpoint).then(res => setTickets(res.data));
+  };
+
+  // Função para mudar Status/Prioridade instantaneamente
+  const atualizarTicket = async (id, campo, valor) => {
+    try {
+      await axios.put(`${API_URL}/api/tickets/${id}`, { [campo]: valor });
+      // Atualiza visualmente sem recarregar tudo
+      setTickets(tickets.map(t => t._id === id ? { ...t, [campo]: valor } : t));
+    } catch (err) { alert("Erro ao atualizar"); }
+  };
+
+  const arquivarTicket = async (id) => {
+    if(!window.confirm("Arquivar este ticket?")) return;
     await axios.put(`${API_URL}/api/tickets/arquivar/${id}`);
-    setTickets(tickets.filter(t => t._id !== id));
+    carregarTickets();
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-brand-primary">Gestão de Tickets</h2>
-        <div className="flex bg-white rounded-lg shadow overflow-hidden">
-          <button onClick={() => setTab('ativos')} className={`px-4 py-2 ${tab === 'ativos' ? 'bg-brand-primary text-white' : 'text-gray-600'}`}>Ativos</button>
-          <button onClick={() => setTab('arquivados')} className={`px-4 py-2 ${tab === 'arquivados' ? 'bg-red-500 text-white' : 'text-gray-600'}`}>Arquivo</button>
-        </div>
+    <div className="max-w-6xl mx-auto">
+      <h2 className="text-2xl font-bold text-brand-primary mb-6">Gestão de Ocorrências</h2>
+
+      <div className="flex gap-4 mb-6 border-b">
+        <button onClick={() => setActiveTab('ativos')} className={`px-4 py-2 font-bold ${activeTab === 'ativos' ? 'border-b-2 border-brand-secondary text-brand-secondary' : 'text-gray-500'}`}>Abertos</button>
+        <button onClick={() => setActiveTab('arquivados')} className={`px-4 py-2 font-bold ${activeTab === 'arquivados' ? 'border-b-2 border-brand-secondary text-brand-secondary' : 'text-gray-500'}`}>Arquivo</button>
       </div>
 
-      <div className="grid gap-4">
+      <div className="space-y-4">
+        {tickets.length === 0 && <p>Nenhum ticket encontrado.</p>}
+        
         {tickets.map(ticket => (
-          <div key={ticket._id} className="bg-white p-4 rounded shadow flex justify-between items-start">
-            <div>
-              <h3 className="font-bold text-lg">{ticket.titulo} <span className="text-xs font-normal text-gray-400">({ticket.status})</span></h3>
-              <p className="text-gray-600">{ticket.descricao}</p>
-              <div className="flex gap-2 mt-2">
-                {ticket.fotos?.map((f, i) => <img key={i} src={`${API_URL}${f}`} className="w-10 h-10 rounded object-cover" />)}
-              </div>
-            </div>
+          <div key={ticket._id} className="bg-white border p-4 rounded-lg shadow-sm flex flex-col md:flex-row justify-between gap-4">
             
-            {tab === 'ativos' && (
-              <button onClick={() => arquivar(ticket._id)} className="text-red-500 hover:bg-red-50 p-2 rounded flex items-center gap-1 text-sm font-bold border border-red-100">
-                <Archive size={16} /> Arquivar
-              </button>
-            )}
-            {tab === 'arquivados' && (
-              <span className="text-xs text-red-400 italic">Arquivado</span>
+            {/* Info Principal */}
+            <div className="flex-1">
+              <h3 className="font-bold text-lg">{ticket.titulo}</h3>
+              <p className="text-sm text-gray-600 mb-2">{ticket.descricao}</p>
+              <div className="flex gap-2">
+                 {ticket.fotos?.map((f, i) => <img key={i} src={`${API_URL}${f}`} className="w-12 h-12 rounded object-cover border" />)}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Autor: {ticket.autor?.nome} | Data: {new Date(ticket.createdAt).toLocaleDateString()}</p>
+            </div>
+
+            {/* Controles do Admin */}
+            {activeTab === 'ativos' && (
+              <div className="flex flex-col gap-2 min-w-[200px]">
+                
+                {/* Selector de Status */}
+                <select 
+                   className="border p-2 rounded text-sm bg-gray-50"
+                   value={ticket.status}
+                   onChange={(e) => atualizarTicket(ticket._id, 'status', e.target.value)}
+                >
+                  <option value="Aberto">🟢 Aberto</option>
+                  <option value="Em Progresso">🟡 Em Progresso</option>
+                  <option value="Resolvido">🔵 Resolvido</option>
+                </select>
+
+                {/* Selector de Prioridade */}
+                <select 
+                   className="border p-2 rounded text-sm bg-gray-50"
+                   value={ticket.prioridade || 'Média'}
+                   onChange={(e) => atualizarTicket(ticket._id, 'prioridade', e.target.value)}
+                >
+                  <option value="Baixa">Prioridade: Baixa</option>
+                  <option value="Média">Prioridade: Média</option>
+                  <option value="Alta">Prioridade: Alta</option>
+                  <option value="Urgente">Prioridade: Urgente</option>
+                </select>
+
+                <button onClick={() => arquivarTicket(ticket._id)} className="text-red-500 text-sm hover:underline flex items-center justify-end mt-2 gap-1">
+                  <Archive size={14}/> Arquivar Ticket
+                </button>
+              </div>
             )}
           </div>
         ))}

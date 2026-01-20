@@ -8,14 +8,16 @@ const TicketSchema = new mongoose.Schema({
         enum: ['Aberto', 'Resolvido', 'Arquivado'], 
         default: 'Aberto' 
     },
-    // Array de strings para guardar os caminhos das fotos
+    // --- NOVO CAMPO AQUI ---
+    prioridade: { 
+        type: String, 
+        enum: ['Baixa', 'Média', 'Alta', 'Urgente'], 
+        default: 'Média' 
+    },
+    // -----------------------
     fotos: [{ type: String }],
-    
-    // IDs para ligação (Relacionamentos)
-    autor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Quem criou
-    condominio: { type: mongoose.Schema.Types.ObjectId, ref: 'Condominio' }, // A que prédio pertence
-    
-    // Campo mágico para o Soft Delete (se tiver data, está "apagado")
+    autor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    condominio: { type: mongoose.Schema.Types.ObjectId, ref: 'Condominio' },
     deletedAt: { type: Date, default: null }
 }, { timestamps: true });
 

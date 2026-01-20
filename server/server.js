@@ -5,27 +5,19 @@ const path = require('path');
 const connectDB = require('./config/db');
 
 const app = express();
-
-// 1. Conectar BD
 connectDB();
 
-// 2. Middlewares
-app.use(cors()); // Permite que o frontend fale com o backend
-app.use(express.json()); // Permite ler JSON no body
-
-// 3. Servir Imagens Estáticas (Crucial para as fotos aparecerem!)
-// Quando o frontend pede http://localhost:5001/uploads/foto.jpg, este comando entrega o ficheiro.
+app.use(cors());
+app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 4. Rotas
+// AS TUAS ROTAS
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tickets', require('./routes/tickets'));
+app.use('/api/condominios', require('./routes/condominios')); // <--- ESTA É CRÍTICA
+app.use('/api/reunioes', require('./routes/reunioes'));
 app.use('/api/comunicados', require('./routes/avisos'));
+app.use('/api/pagamentos', require('./routes/pagamentos'));
 
-// 5. Rota de Teste
-app.get('/', (req, res) => {
-    res.send('API CondoGest 360 a funcionar! 🚀');
-});
-
-// 6. Arrancar Servidor
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Servidor a correr na porta ${PORT}`));
+app.listen(PORT, () => console.log(`Servidor na porta ${PORT}`));
