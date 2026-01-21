@@ -1,13 +1,16 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import { AuthContext } from '../../context/AuthContext'; // IMPORTA O CONTEXTO
+import { AuthContext } from '../../context/AuthContext';
 import { Camera, Paperclip, AlertCircle } from 'lucide-react';
+import TicketChat from '../../components/TicketChat'; // <--- IMPORTA O CHAT
 
 const API_URL = "http://localhost:5001";
 
 export default function MeusTickets() {
-  const { user } = useContext(AuthContext); // PEGA O USER LOGADO
+  const { user } = useContext(AuthContext);
   const [tickets, setTickets] = useState([]);
+  
+  // Form States
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [prioridade, setPrioridade] = useState('Média');
@@ -15,7 +18,6 @@ export default function MeusTickets() {
   const [previews, setPreviews] = useState([]);
 
   useEffect(() => {
-    // Só carrega se tiver user e condominio
     if (user && user.condominio) {
       carregarTickets();
     }
@@ -23,8 +25,8 @@ export default function MeusTickets() {
 
   const carregarTickets = async () => {
     try {
-      // USA O ID REAL DO PRÉDIO DO USER
-      const res = await axios.get(`${API_URL}/api/tickets/condominio/${user.condominio._id || user.condominio}`);
+      const idPredio = user.condominio._id || user.condominio;
+      const res = await axios.get(`${API_URL}/api/tickets/condominio/${idPredio}`);
       setTickets(res.data);
     } catch (error) { console.error("Erro", error); }
   };
@@ -35,14 +37,14 @@ export default function MeusTickets() {
     formData.append('titulo', titulo);
     formData.append('descricao', descricao);
     formData.append('prioridade', prioridade);
-    formData.append('autorId', user._id); // ID REAL DO USER
-    formData.append('condominioId', user.condominio._id || user.condominio); // ID REAL DO PRÉDIO
+    formData.append('autorId', user._id);
+    formData.append('condominioId', user.condominio._id || user.condominio);
     
     fotos.forEach(f => formData.append('fotos', f));
 
     try {
       await axios.post(`${API_URL}/api/tickets`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data', 'x-auth-token': localStorage.getItem('token') }
       });
       alert('Ticket enviado!');
       setTitulo(''); setDescricao(''); setFotos([]); setPreviews([]);
@@ -65,36 +67,79 @@ export default function MeusTickets() {
 
   return (
     <div className="grid md:grid-cols-2 gap-8">
+      
+      {/* --- FORMULÁRIO DE NOVO TICKET --- */}
       <div className="bg-white p-6 rounded-xl shadow border-t-4 border-brand-secondary h-fit">
-        <h2 className="text-xl font-bold mb-4 flex gap-2"><Paperclip/> Novo Pedido</h2>
+        <h2 className="text-xl font-bold mb-4 flex gap-2 text-brand-primary">
+            <Paperclip className="text-brand-secondary"/> Novo Pedido
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-            <input className="w-full border p-2 rounded" placeholder="Assunto" value={titulo} onChange={e=>setTitulo(e.target.value)} required />
-            <select className="w-full border p-2 rounded" value={prioridade} onChange={e=>setPrioridade(e.target.value)}>
-                <option>Baixa</option><option>Média</option><option>Alta</option><option>Urgente</option>
+            <input className="w-full border p-2 rounded focus:ring-2 focus:ring-brand-secondary outline-none" placeholder="Assunto (Ex: Luz fundida no 2º andar)" value={titulo} onChange={e=>setTitulo(e.target.value)} required />
+            
+            <select className="w-full border p-2 rounded bg-white focus:ring-2 focus:ring-brand-secondary outline-none" value={prioridade} onChange={e=>setPrioridade(e.target.value)}>
+                <option value="Baixa">🟢 Baixa</option>
+                <option value="Média">🔵 Média</option>
+                <option value="Alta">🟠 Alta</option>
+                <option value="Urgente">🔴 Urgente</option>
             </select>
-            <textarea className="w-full border p-2 rounded h-24" placeholder="Descrição" value={descricao} onChange={e=>setDescricao(e.target.value)} required />
-            <input type="file" multiple onChange={handleFileChange} className="text-sm"/>
-            <div className="flex gap-2">{previews.map((s,i)=><img key={i} src={s} className="w-12 h-12 object-cover rounded"/>)}</div>
-            <button className="w-full bg-brand-secondary text-white py-2 rounded font-bold">Enviar</button>
+            
+            <textarea className="w-full border p-2 rounded h-24 focus:ring-2 focus:ring-brand-secondary outline-none" placeholder="Descrição detalhada do problema..." value={descricao} onChange={e=>setDescricao(e.target.value)} required />
+            
+            <div className="border-dashed border-2 border-gray-300 p-4 rounded text-center cursor-pointer hover:bg-gray-50 relative">
+                <input type="file" multiple accept="image/*" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                <Camera className="mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-500">Adicionar Fotos</p>
+            </div>
+            
+            <div className="flex gap-2 overflow-x-auto">
+                {previews.map((s,i)=><img key={i} src={s} className="w-12 h-12 object-cover rounded border"/>)}
+            </div>
+            
+            <button className="w-full bg-brand-secondary text-white py-2 rounded font-bold hover:bg-teal-600 transition shadow-md">Enviar Pedido</button>
         </form>
       </div>
 
+      {/* --- LISTA DE TICKETS --- */}
       <div className="space-y-4">
-         <h2 className="text-xl font-bold flex gap-2"><AlertCircle/> Tickets do Prédio</h2>
-         {tickets.map(t => (
-             <div key={t._id} className="bg-white p-4 rounded shadow border-l-4 border-brand-primary">
-                 <div className="flex justify-between">
-                     <span className="font-bold">{t.titulo}</span>
-                     <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(t.prioridade)}`}>{t.prioridade}</span>
+         <h2 className="text-xl font-bold flex gap-2 text-brand-primary">
+            <AlertCircle className="text-brand-secondary"/> Tickets do Prédio
+         </h2>
+         
+         {tickets.length === 0 && <p className="text-gray-500 text-center py-10 bg-white rounded shadow-sm">Nenhum ticket registado ainda.</p>}
+
+         {tickets.map(ticket => (
+             <div key={ticket._id} className="bg-white p-5 rounded-lg shadow border border-gray-100 hover:shadow-md transition">
+                 
+                 <div className="flex justify-between items-start mb-2">
+                     <span className="font-bold text-lg text-gray-800">{ticket.titulo}</span>
+                     <span className={`text-xs px-2 py-1 rounded-full border font-bold ${getPriorityColor(ticket.prioridade)}`}>{ticket.prioridade}</span>
                  </div>
-                 <p className="text-sm text-gray-600 mt-1">{t.descricao}</p>
-                 <div className="flex gap-1 mt-2">
-                    {t.fotos?.map((f,i)=><img key={i} src={`${API_URL}${f}`} className="w-10 h-10 rounded border"/>)}
+                 
+                 <p className="text-sm text-gray-600 mt-1 mb-3">{ticket.descricao}</p>
+                 
+                 {/* Fotos */}
+                 {ticket.fotos?.length > 0 && (
+                    <div className="flex gap-2 mb-3 overflow-x-auto">
+                        {ticket.fotos.map((f,i)=><img key={i} src={`${API_URL}${f}`} className="w-16 h-16 rounded object-cover border cursor-pointer" onClick={()=>window.open(`${API_URL}${f}`)}/>)}
+                    </div>
+                 )}
+
+                 <div className="text-xs text-gray-400 mt-2 flex justify-between border-t pt-2">
+                     <span>👤 {ticket.autor?.nome || 'Vizinho'} ({ticket.autor?.andar || '?'})</span>
+                     <span className="uppercase font-bold tracking-wider">{ticket.status}</span>
                  </div>
-                 <div className="text-xs text-gray-400 mt-2 flex justify-between">
-                     <span>{t.autor?.nome || 'Vizinho'}</span>
-                     <span>{t.status}</span>
-                 </div>
+
+                 {/* --- AQUI ESTÁ O CHAT (DENTRO DO LOOP) --- */}
+                 <TicketChat 
+                    ticketId={ticket._id} 
+                    comentarios={ticket.comentarios || []} 
+                    user={user}
+                    aoAtualizar={(novosComentarios) => {
+                        // Atualiza apenas este ticket na lista sem recarregar tudo
+                        setTickets(tickets.map(t => t._id === ticket._id ? {...t, comentarios: novosComentarios} : t));
+                    }}
+                 />
+                 
              </div>
          ))}
       </div>

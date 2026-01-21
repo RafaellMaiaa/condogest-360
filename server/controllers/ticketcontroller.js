@@ -40,6 +40,7 @@ exports.listarPorCondominio = async (req, res) => {
             deletedAt: null 
         })
         .populate('autor', 'nome') 
+        .populate('comentarios.autor', 'nome role')
         .sort({ createdAt: -1 });
 
         res.json(tickets);
@@ -94,5 +95,33 @@ exports.listarArquivados = async (req, res) => {
         res.json(tickets);
     } catch (error) {
         res.status(500).json(error);
+    }
+};
+// 6. ADICIONAR COMENTÁRIO (CHAT)
+exports.adicionarComentario = async (req, res) => {
+    try {
+        const { texto } = req.body;
+        const ticketId = req.params.id;
+        const autorId = req.user.id;
+
+        const ticket = await Ticket.findById(ticketId);
+        if (!ticket) return res.status(404).json({ msg: "Ticket não encontrado" });
+
+        // Adiciona ao array
+        ticket.comentarios.push({
+            texto,
+            autor: autorId
+        });
+
+        await ticket.save();
+
+        // Devolve o ticket atualizado com os nomes populados para o chat aparecer logo
+        const ticketAtualizado = await Ticket.findById(ticketId)
+            .populate('autor', 'nome')
+            .populate('comentarios.autor', 'nome role');
+
+        res.json(ticketAtualizado.comentarios); // Devolve só a lista nova
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao comentar" });
     }
 };

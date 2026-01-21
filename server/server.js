@@ -18,6 +18,7 @@ app.use('/api/condominios', require('./routes/condominios')); // <--- ESTA É CR
 app.use('/api/reunioes', require('./routes/reunioes'));
 app.use('/api/comunicados', require('./routes/avisos'));
 app.use('/api/pagamentos', require('./routes/pagamentos'));
+app.use('/api/stats', require('./routes/stats'));
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Servidor na porta ${PORT}`));

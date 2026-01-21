@@ -7,7 +7,7 @@ export default function Footer() {
           <p className="text-sm opacity-70">Gestão simplificada, vizinhos felizes.</p>
         </div>
         <p className="text-xs opacity-50">
-          &copy; {new Date().getFullYear()} CondoGest 360. Todos os direitos reservados.
+          &copy; {new Date().getFullYear()} CondoGest 360. Criado por Rafael Maia :D
         </p>
       </div>
     </footer>
