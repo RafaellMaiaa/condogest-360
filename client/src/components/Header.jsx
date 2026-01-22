@@ -50,6 +50,11 @@ export default function Header() {
                 </Link>
               )}
 
+              <Link to="/documentos" className="flex items-center gap-1 hover:text-brand-secondary transition">
+              <span className="hidden lg:inline">Docs</span>
+              <span className="lg:hidden">📂</span>
+              </Link>
+
               <Link to="/comunicados" className="flex items-center gap-1 hover:text-brand-secondary transition">
                 <Bell size={18} /> <span className="hidden lg:inline">Avisos</span>
               </Link>

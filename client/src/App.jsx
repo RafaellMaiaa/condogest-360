@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Pagamentos from './pages/Pagamentos';
+import Documentos from './pages/Documentos';
 
 // Páginas existentes
 import Dashboard from './pages/Dashboard';
@@ -46,6 +47,7 @@ function App() {
           <Route path="/comunicados" element={<RotaPrivada><Comunicados /></RotaPrivada>} />
           <Route path="/" element={<RotaPrivada><Dashboard /></RotaPrivada>} />
           <Route path="/pagamentos" element={<RotaPrivada><Pagamentos /></RotaPrivada>} />
+          <Route path="/documentos" element={<RotaPrivada><Documentos /></RotaPrivada>} />
           {/* Rota Só para Admin */}
           <Route path="/admin/tickets" element={<RotaAdmin><AdminTickets /></RotaAdmin>} />
           <Route path="/admin/dashboard" element={<RotaAdmin><DashboardAdmin /></RotaAdmin>} />
