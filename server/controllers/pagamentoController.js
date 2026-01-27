@@ -4,7 +4,6 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-// 1. CRIAR AVISO DE PAGAMENTO
 exports.criarPagamento = async (req, res) => {
     try {
         const { inquilinoId, valor, descricao, condominioId } = req.body;
@@ -24,7 +23,6 @@ exports.criarPagamento = async (req, res) => {
     }
 };
 
-// 2. LISTAR PAGAMENTOS
 exports.listar = async (req, res) => {
     try {
         const { condominioId } = req.params;
@@ -44,7 +42,6 @@ exports.listar = async (req, res) => {
     }
 };
 
-// 3. REGISTAR QUE FOI PAGO (COM NUMERAÇÃO AUTOMÁTICA)
 exports.marcarPago = async (req, res) => {
     try {
         const { valorPago } = req.body;
@@ -53,7 +50,6 @@ exports.marcarPago = async (req, res) => {
         const pagamentoAtual = await Pagamento.findById(pagamentoId);
         if (!pagamentoAtual) return res.status(404).json({ msg: "Pagamento não encontrado" });
 
-        // LÓGICA DE NUMERAÇÃO SEQUENCIAL
         const ultimoPagamento = await Pagamento.findOne({ 
             condominio: pagamentoAtual.condominio,
             numeroRecibo: { $exists: true } 
@@ -76,8 +72,6 @@ exports.marcarPago = async (req, res) => {
         res.status(500).json({ error: "Erro ao confirmar pagamento" });
     }
 };
-
-// 4. GERAR PDF COM MARCA DE ÁGUA 📄💧
 exports.downloadRecibo = async (req, res) => {
     try {
         const pagamento = await Pagamento.findById(req.params.id)
@@ -90,7 +84,6 @@ exports.downloadRecibo = async (req, res) => {
 
         const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
-        // Cores
         const colorPrimary = '#0F4C81';
         const colorSecondary = '#4DB6AC';
         const colorText = '#333333';
@@ -100,29 +93,22 @@ exports.downloadRecibo = async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=Recibo-${pagamento.numeroRecibo}.pdf`);
         doc.pipe(res);
 
-        // --- 0. MARCA DE ÁGUA (BACKGROUND) ---
         const logoPath = path.join(__dirname, '../assets/logo.png');
         if (fs.existsSync(logoPath)) {
-            doc.save(); // Guarda as definições normais
+            doc.save(); 
             
-            // Define opacidade baixa (15%)
             doc.opacity(0.15); 
-            
-            // Desenha a imagem centrada na página A4
-            // A4 tem 595pts de largura. Usamos Y=200 para começar mais abaixo do cabeçalho.
             doc.image(logoPath, 0, 200, {
-                fit: [595, 400], // Largura total da página, altura máx de 400
+                fit: [595, 400],
                 align: 'center',
                 valign: 'center'
             });
             
-            doc.restore(); // Restaura a opacidade para 100% para o texto seguinte
+            doc.restore(); 
         }
 
-        // --- 1. CABEÇALHO ---
         doc.rect(0, 0, 595, 120).fill(colorPrimary);
         
-        // Título e Nº DO RECIBO
         doc.fillColor('white').fontSize(26).font('Helvetica-Bold')
            .text('RECIBO DE PAGAMENTO', 50, 40);
         
@@ -132,15 +118,12 @@ exports.downloadRecibo = async (req, res) => {
         
         doc.text(`DATA: ${new Date().toLocaleDateString('pt-PT')}`, 50, 95);
 
-        // Se não houver imagem de fundo, mete o nome no canto (opcional)
         if (!fs.existsSync(logoPath)) {
              doc.fontSize(16).fillColor('white').text('CondoGest', 450, 40, { align: 'right' });
         }
 
-        // --- 2. DADOS ---
         const startY = 160;
 
-        // Coluna Esquerda: Condomínio
         doc.fillColor(colorText);
         doc.fontSize(10).font('Helvetica-Bold').text('EMITIDO POR:', 50, startY);
         doc.font('Helvetica').text(pagamento.condominio.nome, 50, startY + 15);
@@ -181,7 +164,7 @@ exports.downloadRecibo = async (req, res) => {
         // --- 5. RODAPÉ ---
         const footerTop = 650;
         doc.fillColor(colorText).fontSize(10).font('Helvetica');
-        doc.text('Este documento serve como comprovativo de pagamento.', 50, footerTop, { align: 'center' });
+        doc.text('Este documento não serve como comprovativo de pagamento.', 50, footerTop, { align: 'center' });
         doc.moveTo(150, footerTop + 60).lineTo(445, footerTop + 60).strokeColor('black').stroke();
         doc.text('A Administração', 50, footerTop + 70, { align: 'center' });
 

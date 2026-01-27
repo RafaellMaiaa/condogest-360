@@ -8,14 +8,12 @@ import Register from './pages/Register';
 import Pagamentos from './pages/Pagamentos';
 import Documentos from './pages/Documentos';
 
-// Páginas existentes
 import Dashboard from './pages/Dashboard';
 import MeusTickets from './pages/tickets/MeusTickets';
 import AdminTickets from './pages/admin/AdminTickets';
 import Comunicados from './pages/Comunicados';
-import DashboardAdmin from './pages/admin/DashboardAdmin'; // <--- Importa o DashboardAdmin
+import DashboardAdmin from './pages/admin/DashboardAdmin';
 
-// Componente para Proteger Rotas
 const RotaPrivada = ({ children }) => {
     const { user } = useContext(AuthContext);
     return user ? children : <Navigate to="/login" />;

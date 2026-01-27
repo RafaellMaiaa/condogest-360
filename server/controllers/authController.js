@@ -4,27 +4,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo_super_secreto_condogest';
-// Este é o código que TU usas para criar a primeira conta de ADMIN
+
 const MASTER_KEY = 'ADMIN_MASTER_123'; 
 
-// 1. REGISTAR (Cria conta e liga ao prédio correto)
 exports.registar = async (req, res) => {
     try {
         const { nome, email, password, codigoAcesso, fracao } = req.body;
 
-        // A. Verificar se email já existe
         const userExiste = await User.findOne({ email });
         if (userExiste) return res.status(400).json({ msg: 'Este email já está registado.' });
 
         let role = 'Inquilino';
         let condominioId = null;
 
-        // B. Verificar o Código de Acesso
         if (codigoAcesso === MASTER_KEY) {
-            // É um Admin a registar-se com a chave mestra
             role = 'Admin';
         } else {
-            // É um Inquilino? Procurar o prédio pelo código
             const condominioEncontrado = await Condominio.findOne({ codigoAcesso });
             
             if (!condominioEncontrado) {
@@ -33,19 +28,17 @@ exports.registar = async (req, res) => {
             condominioId = condominioEncontrado._id;
         }
 
-        // C. Encriptar Password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // D. Criar Utilizador
         const newUser = new User({
             nome,
             email,
             password: hashedPassword,
             role,
             condominio: condominioId,
-            fracao: role === 'Admin' ? 'Escritório' : fracao, // Se for admin não precisa de fração
-            codigoAcesso // Guardamos o código usado por referência
+            fracao: role === 'Admin' ? 'Escritório' : fracao, 
+            codigoAcesso 
         });
 
         await newUser.save();
@@ -88,10 +81,8 @@ exports.login = async (req, res) => {
     }
 };
 
-// 3. OBTER DADOS DO USER (Me)
 exports.getMe = async (req, res) => {
     try {
-        // Traz também os dados do condomínio (nome, morada)
         const user = await User.findById(req.user.id).select('-password').populate('condominio');
         res.json(user);
     } catch (error) {
@@ -99,15 +90,13 @@ exports.getMe = async (req, res) => {
     }
 };
 
-// 4. LISTAR VIZINHOS POR CONDOMÍNIO (Para o Admin selecionar quem paga)
 exports.getVizinhos = async (req, res) => {
     try {
         const { condominioId } = req.params;
         
-        // Busca users desse prédio (exceto quem fez o pedido, se quiseres)
         const vizinhos = await User.find({ condominio: condominioId })
-            .select('nome fracao role email') // Traz apenas dados essenciais
-            .sort({ fracao: 1 }); // Ordena por andar (1º, 2º, 3º...)
+            .select('nome fracao role email') 
+            .sort({ fracao: 1 }); 
 
         res.json(vizinhos);
     } catch (error) {

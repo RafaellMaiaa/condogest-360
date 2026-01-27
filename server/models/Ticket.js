@@ -10,7 +10,7 @@ const TicketSchema = new mongoose.Schema({
     condominio: { type: mongoose.Schema.Types.ObjectId, ref: 'Condominio' },
     deletedAt: { type: Date, default: null },
 
-    // NOVO: Array de Comentários (Chat)
+
     comentarios: [{
         texto: String,
         autor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

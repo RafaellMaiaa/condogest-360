@@ -12,7 +12,7 @@ const PagamentoSchema = new mongoose.Schema({
     },
     dataPagamento: { type: Date },
     
-    // NOVO CAMPO: Guarda o número sequencial (ex: 1, 2, 3)
+
     numeroRecibo: { type: Number } 
 
 }, { timestamps: true });

@@ -45,7 +45,7 @@ exports.listarPorCondominio = async (req, res) => {
 
         res.json(tickets);
     } catch (error) {
-        // Isto vai imprimir o erro real no terminal preto do servidor
+
         console.error("Erro ao listar tickets:", error); 
         res.status(500).json({ error: error.message });
     }
@@ -63,7 +63,7 @@ exports.atualizarTicket = async (req, res) => {
         const ticket = await Ticket.findByIdAndUpdate(
             req.params.id,
             dados,
-            { new: true } // Retorna o atualizado
+            { new: true } 
         );
         res.json(ticket);
     } catch (error) {
@@ -107,20 +107,18 @@ exports.adicionarComentario = async (req, res) => {
         const ticket = await Ticket.findById(ticketId);
         if (!ticket) return res.status(404).json({ msg: "Ticket não encontrado" });
 
-        // Adiciona ao array
+
         ticket.comentarios.push({
             texto,
             autor: autorId
         });
 
         await ticket.save();
-
-        // Devolve o ticket atualizado com os nomes populados para o chat aparecer logo
         const ticketAtualizado = await Ticket.findById(ticketId)
             .populate('autor', 'nome')
             .populate('comentarios.autor', 'nome role');
 
-        res.json(ticketAtualizado.comentarios); // Devolve só a lista nova
+        res.json(ticketAtualizado.comentarios);
     } catch (error) {
         res.status(500).json({ error: "Erro ao comentar" });
     }

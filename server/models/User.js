@@ -13,8 +13,8 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Condominio' 
     },
-    fracao: { type: String }, // Ex: "1º Esq"
-    codigoAcesso: { type: String } // O código secreto da casa
+    fracao: { type: String },
+    codigoAcesso: { type: String } 
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

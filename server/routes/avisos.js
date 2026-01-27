@@ -6,8 +6,8 @@ const AvisoSchema = new mongoose.Schema({
     tipo: { type: String, enum: ['Geral', 'Evento'], default: 'Geral' },
     condominio: { type: mongoose.Schema.Types.ObjectId, ref: 'Condominio' },
     
-    // Arrays para guardar quem vai e quem não vai (RSVP)
-    vou: [{ type: String }], // Guardamos os IDs dos users aqui
+
+    vou: [{ type: String }], 
     naoVou: [{ type: String }]
 }, { timestamps: true });
 

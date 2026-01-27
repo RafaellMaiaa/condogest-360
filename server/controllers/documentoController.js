@@ -2,7 +2,6 @@ const Documento = require('../models/Documento');
 const fs = require('fs');
 const path = require('path');
 
-// 1. UPLOAD DE DOCUMENTO
 exports.uploadDoc = async (req, res) => {
     try {
         const { titulo, condominioId } = req.body;
@@ -22,8 +21,6 @@ exports.uploadDoc = async (req, res) => {
         res.status(500).json({ error: "Erro ao fazer upload" });
     }
 };
-
-// 2. LISTAR DOCUMENTOS (Do Prédio)
 exports.listar = async (req, res) => {
     try {
         const docs = await Documento.find({ condominio: req.params.condominioId })
@@ -34,13 +31,11 @@ exports.listar = async (req, res) => {
     }
 };
 
-// 3. APAGAR DOCUMENTO (E remover ficheiro do disco)
 exports.apagar = async (req, res) => {
     try {
         const doc = await Documento.findById(req.params.id);
         if (!doc) return res.status(404).json({ msg: "Documento não encontrado" });
 
-        // Tentar apagar o ficheiro físico da pasta uploads
         const caminhoFisico = path.join(__dirname, '..', doc.caminho);
         if (fs.existsSync(caminhoFisico)) {
             fs.unlinkSync(caminhoFisico);

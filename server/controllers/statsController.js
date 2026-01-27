@@ -1,4 +1,4 @@
-const mongoose = require('mongoose'); // <--- ISTO ERA O QUE FALTAVA!
+const mongoose = require('mongoose'); 
 const Ticket = require('../models/Ticket');
 const Pagamento = require('../models/Pagamento');
 
@@ -7,13 +7,10 @@ exports.getDashboardStats = async (req, res) => {
         const { condominioId } = req.params;
         console.log(`📊 Calculando stats para o condomínio: ${condominioId}`);
 
-        // 1. Contar Tickets
         const totalTickets = await Ticket.countDocuments({ condominio: condominioId });
         const ticketsAbertos = await Ticket.countDocuments({ condominio: condominioId, status: 'Aberto' });
         const ticketsResolvidos = await Ticket.countDocuments({ condominio: condominioId, status: 'Resolvido' });
 
-        // 2. Somar Pagamentos
-        // Nota: O aggregate precisa do ObjectId, não pode ser string
         const objectId = new mongoose.Types.ObjectId(condominioId);
 
         const totalArrecadado = await Pagamento.aggregate([
@@ -26,7 +23,6 @@ exports.getDashboardStats = async (req, res) => {
             { $group: { _id: null, total: { $sum: "$valor" } } }
         ]);
 
-        // Prepara os dados (se o array vier vazio, assume 0)
         const stats = {
             tickets: { 
                 total: totalTickets, 
@@ -42,7 +38,7 @@ exports.getDashboardStats = async (req, res) => {
         res.json(stats);
 
     } catch (error) {
-        console.error("❌ ERRO CRÍTICO NAS STATS:", error); // Isto vai mostrar o erro no terminal
+        console.error("❌ ERRO CRÍTICO NAS STATS:", error); 
         res.status(500).json({ error: "Erro ao calcular estatísticas" });
     }
 };

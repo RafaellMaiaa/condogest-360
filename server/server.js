@@ -11,10 +11,9 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// AS TUAS ROTAS
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tickets', require('./routes/tickets'));
-app.use('/api/condominios', require('./routes/condominios')); // <--- ESTA É CRÍTICA
+app.use('/api/condominios', require('./routes/condominios')); 
 app.use('/api/reunioes', require('./routes/reunioes'));
 app.use('/api/comunicados', require('./routes/avisos'));
 app.use('/api/pagamentos', require('./routes/pagamentos'));
